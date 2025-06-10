@@ -5,4 +5,4 @@ This repository will include image processing workflows, simulation workflows, c
 Also checkout our git repositores for the packages implementing algorithms described in the preprint for use in these workflows: 
 * [SeqFISHSyndromeDecoding.jl](https://github.com/CaiGroup/SeqFISHSyndromeDecoding.jl)
 * [SeqFISH_ADCG.jl](https://github.com/CaiGroup/SeqFISH_ADCG.jl)
-* [seqfish_fmalign](https://github.com/CaiGroup/seqfish_fmalign)
+* [seqfish_fm_match](https://github.com/CaiGroup/seqfish_fm_match)
