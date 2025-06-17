@@ -1,0 +1,99 @@
+# number of negative control codewords to use: either "all" or positive integer
+# using positive integer greater than the number of unused codewords is equivilant
+# to using "all"
+n_neg_cntrl_cws: "all"
+
+reps: [1,2]
+
+# Excitation laser wavelengths for readouts as stored in ome.tiff metadata
+#readout_channels: [488] #, 561, 643]
+
+# Excitation laser wavelength for cross-correlation alignment as stored in ome.tiff metadata
+alignment_channel: 405
+
+# set initial and final hybridization numbers of experiment
+initial_hyb: 0
+final_hyb: 80
+
+#channels to fit, align, background subtract, and decode
+channels: [488, 561, 643]
+
+z_slice: 0
+
+# Array of positions in the experiment
+
+positions:
+  rep1: [0,1,2,3,4,5,6] #[0,1,2,3,4,5,6]
+  rep2: [0,1,2,3,4,5,6,7,8,9] #[0, 7] #
+
+# parameters for fitting beads with ADCG
+fit_beads:
+  sigma_lb: 1.0
+  sigma_ub: 2.0
+  final_loss_improvement: 10000.0
+  min_weight: 3000.0
+
+
+# search radius (in pixels) to match fiducial markers in
+# initial and final fiducial marker only images
+r_xy: 4
+r_z: 1
+
+rxy_ro: 4
+
+min_fm_hyb_matches: 'default'
+
+outlier_sd_thresh: 3
+
+max_lat_offset: 10
+
+set_xy_search_error: 0.5
+
+# radius of rolling ball background subtraction element (in pixels)
+rb_radius: 3.3
+
+#radius of median filter (in pixels) applied before rolling ball background subtraction
+r_med_filt: 5
+
+max_iters: 200
+max_cd_iters: 20 #200
+
+sigma_ub:
+  643: 1.4
+  561: 1.22 #1.4*561/643
+  488: 1.06 #1.4*488/643
+
+sigma_lb:
+  643: 1.0
+  561: 0.87 #1.0*561/643
+  488: 0.76 #1.0*488/643
+
+min_weight:
+  643: 600.0
+  561: 600.0
+  488: 1000.0
+
+final_loss_improvement:
+  643: 1000.0
+  561: 1000.0
+  488: 1000.0
+
+min_allowed_separation: 2.0
+
+
+# cost parameters for syndrome decoding to try
+sfs: [0.0]
+wfs: [1.0,1.5,2.0,2.5,3.0,3.5,4.0] #[4.0, 8.0, 12.0] #, 16.0]
+lfs: [4.5, 6.0, 7.5, 9.0, 11.5, 13.0] #[30.0, 40.0, 50.0, 60.0, 70.0, 80.0]
+drops: [0]
+
+skip_thresh: 2500
+skip_density_thresh: 10
+
+min_filter_size: 5
+filter_prop_neg_control: 0.3
+
+overlay_roi_width: 200
+
+radial_density_func_rmax: 2
+radial_density_func_delta_r: 0.02

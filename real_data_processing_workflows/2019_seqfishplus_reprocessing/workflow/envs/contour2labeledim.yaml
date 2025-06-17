@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - scikit-image
+  - numpy
+  - tifffile
+  - read-roi

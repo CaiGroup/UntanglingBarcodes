@@ -1,0 +1,42 @@
+#rule all:
+    #input: expand("ch_tifs/beads_{bead}_ch_{ch}_pos_{pos}.tif", bead=['initial', 'final'], ch=[643, 561],pos=positions)
+
+configfile: "config/config.yaml"
+
+hybs = list(range(config['initial_hyb'], config['final_hyb']+1))
+
+#min_params = "lf{lf}_wf{wf}_sf{sf}_dr{dr}".format(lf=min(config['lfs']),wf=min(config['wfs']),sf=min(config['sfs']),dr=max(config['drops']))
+plot_params = "lf{lf}_wf{wf}_sf{sf}_dr{dr}".format(lf=min(config['lfs']),wf=4.0,sf=min(config['sfs']),dr=max(config['drops']))
+
+
+def expand_rep_all(string, reps):
+    files = []
+    for rep in reps:
+        str2 = string.format(rep=rep)
+        files += expand(str2,lf=config['lfs'],wf=config['wfs'],sf=config['sfs'],pos=config['positions']['rep'+str(rep)], ch=config['channels'],filtered=['filtered', 'unfiltered'],dr=config['drops'])
+    return files
+
+rule target:
+    input:
+        expand_rep_all("results/rep{rep}/plots/corr_plots/corr_plot_{{filtered}}_ch_{{ch}}_pos_{{pos}}_lf{{lf}}_wf{{wf}}_sf{{sf}}_dr{{dr}}.png", config['reps']),
+        expand_rep_all("results/rep{rep}/plots/on_off_plots/on_off_{{filtered}}_ch_{{ch}}_pos_{{pos}}.png", config['reps']),
+        #expand_rep_all("results/rep{rep}/plots/interactive_plots/overlay_{{filtered}}_ch_{{ch}}_pos_{{pos}}_"+min_params+".html", config['reps']),
+        #expand_rep_all("results/rep{rep}/plots/interactive_plots/bgsub_overlay_{{filtered}}_ch_{{ch}}_pos_{{pos}}_"+plot_params+".html", config['reps']),
+        expand_rep_all("results/rep{rep}/plots/alignment_loocv_errors/pos_{{pos}}.png", config['reps']),
+        #expand_rep_all('results/rep{rep}/plots/dot_stats/hyb_counts_pos_{{pos}}_ch_{{ch}}.png',config['reps']),
+        expand('results/rep{rep}/plots/dot_stats/radial_density_functions.png', rep =config['reps']),
+        expand("results/rep{rep}/plots/on_off_plots/on_off_{filtered}_overall.png", filtered=['filtered', 'unfiltered'], rep=config['reps']),
+        expand("results/rep{rep}/plots/corr_plots/corr_plot_overall_{filtered}_lf{lf}_wf{wf}_sf{sf}_dr{dr}.png",lf=config['lfs'],wf=config['wfs'],sf=config['sfs'],dr=config['drops'], rep=config['reps'], filtered=['filtered', 'unfiltered']),
+        #expand("results/rep{rep}/plots/nc_freq_hists/nc_freq_hist_lf{lf}_wf{wf}_sf{sf}_dr{dr}.png",lf=config['lfs'],wf=config['wfs'],sf=config['sfs'],dr=config['drops'], rep=config['reps']),
+        #expand("results/rep{rep}/plots/cell_pdt_hist/cell_pdt_hist_lf{lf}_wf{wf}_sf{sf}_dr{dr}.png",lf=config['lfs'],wf=config['wfs'],sf=config['sfs'],dr=config['drops'], rep=config['reps']),
+        expand("results/plots/corr_plots/corr_plot_overall_{filtered}_lf{lf}_wf{wf}_sf{sf}_dr{dr}.png", lf=config['lfs'],wf=config['wfs'],sf=config['sfs'],dr=config['drops'], filtered=['filtered', 'unfiltered']),
+        expand("results/decode_summary_stats_{filtered}.csv", filtered=['filtered', 'unfiltered'])
+
+include: "rules/generate_full_cb.smk"
+include: "rules/get_ch_pngs.smk"
+include: "rules/fit_beads.smk"
+include: "rules/find_fiducial_marker_alignments.smk"
+include: "rules/subtract_background.smk"
+include: "rules/fit_readout_dots.smk"
+include: "rules/decode.smk"
+include: "rules/make_plots.smk"

@@ -1,0 +1,9 @@
+.snakemake
+results*
+*_pycache_
+*.pyc
+workflow/notebooks/*
+.ipynb_checkpoints*
+.idea*
+docs/build*
+gurobi.log
