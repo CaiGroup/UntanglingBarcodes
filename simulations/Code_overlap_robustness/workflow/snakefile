@@ -1,0 +1,112 @@
+configfile: "config/config.yaml"
+import pandas as pd
+import numpy as np
+print("get codes to simulate")
+codes_to_simulate = pd.read_csv(config["code_file"])
+codes_to_simulate.set_index(['code'], inplace=True)
+print("got codes")
+
+if config["nreps"] != 0:
+    config["reps"] = list(range(config["nreps"]))
+
+rule target:
+    #input: "results/decoded/decoded_npcl_20_ncws_7000_rep_48_nbarcodes1_lf3.0.csv"
+    input: "results/sum_stats_wtruth.csv"
+
+rule generate_simulated_data:
+    input: "resources/codebooks/{code}cb.csv", "resources/ff_elem_2_pseudocolor.csv"
+    params: fov_width=config["fov_width"], sigma=config["sigma"], rstdv=config["rstdv"], prand_dot=config["prand_dot"]
+    group: "decode"
+    output: 
+        "results/truth/ground_truth_{code}cb_rep{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}.csv",
+        "results/dots/dots_{code}cb_rep{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}.csv", 
+    script: "scripts/gen_sim_data_and_truth.jl"
+
+
+rule find_barcode_candidates:
+    input: 
+        "results/dots/dots_{code}cb_rep{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}.csv",
+        "resources/codebooks/{code}cb.csv", 
+        "resources/codebooks/{code}_H.csv"
+    params: lf = min(config["lf"]), drc = max(config["drop_correction"]), lat_thresh=config["lat_thresh"]
+    group: "decode"
+    output: "results/candidate_barcodes/candidate_barcodes_{code}cb_rep_{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}.csv"
+    script: "scripts/find_save_barcode_candidates.jl"
+
+
+rule choose_barcodes:
+    input: 
+        "results/candidate_barcodes/candidate_barcodes_{code}cb_rep_{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}.csv", 
+        "results/dots/dots_{code}cb_rep{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}.csv",
+        "resources/codebooks/{code}cb.csv",
+        "resources/codebooks/{code}_H.csv"
+    params: skip_thresh="auto", skip_density_thresh=100, lat_thresh=config["lat_thresh"]
+    group: "decode"
+    output: 
+        "results/decoded/decoded_{code}cb_rep_{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}_lf{lf}_drc{drc}.csv",
+        "results/sum_stats/sum_stats_{code}cb_rep_{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}_lf{lf}_drc{drc}.csv",
+    script: "scripts/choose_barcodes_from_saved_candidates.jl"
+    
+
+rule add_truth_score_col:
+    input:
+        "results/sum_stats/sum_stats_{code}cb_rep_{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}_lf{lf}_drc{drc}.csv",
+        "results/decoded/decoded_{code}cb_rep_{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}_lf{lf}_drc{drc}.csv",
+        "results/truth/ground_truth_{code}cb_rep{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}.csv",
+        "resources/codebooks/{code}cb.csv"
+    group: "decode"
+    output:
+        "results/sumstats_wtruth/sswt_{code}cb_rep_{rep}_nbarcodes{nbarcodes}_prand{prand}_pdrop{pdrop}_lf{lf}_drc{drc}.csv"
+    conda: "envs/pdnp.yaml"
+    script: "scripts/add_truth_score.py"
+
+    
+
+rule aggregate_sumstats_reps_lfs_nnonspec_pdrop:
+    input: expand("results/sumstats_wtruth/sswt_{{code}}cb_rep_{rep}_nbarcodes{{nbarcodes}}_prand{prand}_pdrop{pdrop}_lf{lf}_drc{drc}.csv", rep=config["reps"], lf=config["lf"], prand=config["prand_dot"], pdrop=config["pdrop"], drc=config["drop_correction"])
+    output: "results/sumstats_wtruth/sum_stats_wtruth_{code}cb_nbarcodes{nbarcodes}.csv"
+    conda: "envs/pdnp.yaml"
+    script: "scripts/aggregate_sum_stats.py"
+
+# aggregate code densities
+code_aggregates = []
+for i in codes_to_simulate.index:
+
+    #ds = eval(list(codes_to_simulate.loc[i, 'densities_to_simulate'])[0])
+    ds = eval(codes_to_simulate.loc[i, 'densities_to_simulate'])
+
+    infile_template = "results/sumstats_wtruth/sum_stats_wtruth_{code}cb_nbarcodes{{nbarcodes}}.csv".format(code=i)
+    outfile = "results/sumstats_wtruth/sum_stats_wtruth_{code}cb.csv".format(code=i)
+    code_aggregates.append(outfile)
+
+    rule:
+        input: expand(infile_template, nbarcodes=ds)
+        output: outfile
+        conda: "envs/pdnp.yaml"
+        script: "scripts/aggregate_sum_stats.py"
+
+"""
+codes_to_simulate.reset_index(inplace=True)
+codes_to_simulate.set_index('n_pseudocolors', inplace=True)
+for i in np.unique(codes_to_simulate.index):
+
+    ncws = codes_to_simulate.loc[i, 'n_codewords']
+    infile_template = "results/sumstats_wtruth/sum_stats_wtruth_npseudocolors_{npcl}_ncodewords_{{ncws}}.csv".format(npcl=i)
+    
+    rule:
+        input: expand(infile_template, ncws=ncws)
+        output: "results/sumstats_wtruth/sum_stats_wtruth_npseudocolors_{npcl}.csv".format(npcl=i)
+        script: "scripts/aggregate_sum_stats.py"
+
+codes_to_simulate.reset_index(inplace=True)
+rule aggregate_codes:
+    input: expand("results/sumstats_wtruth/sum_stats_wtruth_npseudocolors_{npcl}.csv", npcl=np.unique(codes_to_simulate.n_pseudocolors))
+    output: "results/sum_stats_wtruth.csv"
+    script: "scripts/aggregate_sum_stats.py"
+"""
+    
+rule aggregate_codes:
+    input: code_aggregates
+    output: "results/sum_stats_wtruth.csv"
+    conda: "envs/pdnp.yaml"
+    script: "scripts/aggregate_sum_stats.py"
