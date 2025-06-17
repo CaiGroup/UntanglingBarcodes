@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - pandas=1.4
+  - numpy
+  - scipy
+  - opencv

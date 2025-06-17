@@ -1,0 +1,10 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - pandas
+  - numpy
+  - matplotlib
+  - holoviews
+  - bokeh
+  - scikit-image

@@ -1,0 +1,10 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - numpy
+  - tifffile
+  - cellpose
+  - pytorch=1.8.2
+  - scikit-image
+  - os
