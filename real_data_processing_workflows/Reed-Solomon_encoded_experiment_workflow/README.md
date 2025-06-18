@@ -1,4 +1,6 @@
-# RS_SeqFISH-_workflow
+# RS SeqFISH workflow
+This is the workflow used to process raw data from our Reed-Solomon encoded experiment. The raw images are too large to include in this repository, but an alternative version of the workflow is available in another [git repository](https://github.com/CaiGroup/DisentanglingRSBarcodes/tree/master) that includes preprocessed data of a managable size. 
+
 
 # Installing packages
 
