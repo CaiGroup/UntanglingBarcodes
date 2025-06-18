@@ -8,5 +8,5 @@ Also checkout our git repositores for the packages implementing algorithms descr
 * [seqfish_fm_match](https://github.com/CaiGroup/seqfish_fm_match)
 
 Experimental data processing workflows included in this repository are written to take raw data as inputs. As raw experimental image data is too large for posting it to be practical, we make available alternative versions of our data processing workflows with preprocessed data of managable size: 
-* [Cross-channel Reed-Solomon encoded experiment](https://github.com/CaiGroup/DisentanglingRSBarcodes/tree/master)
+* [Cross-channel Reed-Solomon encoded experiment](https://github.com/CaiGroup/UntanglingRSBarcodes/tree/master)
 * 2019 SeqFISH+ (Coming soon)
