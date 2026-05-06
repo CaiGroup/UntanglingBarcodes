@@ -1,0 +1,35 @@
+configfile: "config/config.yaml"
+hybs = list(range(34))
+
+smFISH_hybs = list(range(35, 52))
+
+all_hybs = list(range(100)) #1,101))
+
+rule target:
+    input:
+        #expand("results/aligned_dots/aligned_dots_pos_{pos}.csv", pos=0),
+        expand("results/decode_summary_stats_pos_{pos}.csv", pos=config['positions']),
+        #expand("results/fit_dots/all_ro_pos_{pos}.csv", pos=config["positions"]),
+        #expand("results/ims_bg_sub/HybCycle_{hyb}_ch{ch}_pos_{pos}.tif", pos=config["positions"], ch=config["channels"], hyb = hybs),
+        #expand("results/Shifted_Labeled_Images/hyb_{hyb}_ch{ch}_pos_{pos}.tif", pos=config["positions"], ch=config["channels"], hyb = hybs),
+        #expand("results/fit_dots/all_smFISH_pos_{pos}.csv", pos = config["positions"]),
+        expand("results/alignment/offsets_pos_{pos}.csv", pos=config["positions"]), #, ch=config["channels"]),
+        #expand("results/fm_fits/all_fms_pos_{pos}.csv", pos=config["positions"]),
+        #expand("results/fm_fits/chromatic_aberration_ch{ch}_pos{pos}.csv", pos=config["positions"], ch = config["channels"]),
+        #expand("results/fm_fits/chromatic_aberration_ch{ch}_pos{pos}.csv", pos=config["positions"], ch = config["channels"]),
+        #expand("results/codepaths/cps_pos_{pos}.csv", pos=config["positions"]),
+        #expand("results/plots/on_off_plots/on_off_pos_{pos}.png",pos=config["positions"],ch=config["channels"]),
+        #expand("results/decoded/barcodes_unfiltered_pos_{pos}_lf{lf}_zf{zf}_wf{wf}_sf{sf}_dr{dr}.csv", lf=config["lfs"], zf=config["zfs"], wf=config["wfs"], sf=config["sfs"], dr=config["drops"], pos=config["positions"]),
+        #expand("results/plots/hyb_max_proj_overlays/hyb_overlay_ch_{ch}_pos_{pos}.html", pos=config["positions"], ch=config["channels"], hyb = hybs),
+        #expand("results/plots/fit_overlays/bgsub_overlay_{hyb}_ch_{ch}_pos_{pos}.html", pos=config["positions"], ch=config["channels"], hyb = hybs),
+        #expand("results/plots/fit_overlays/bgsub_overlay_{hyb}_ch_{ch}_pos_{pos}.html", pos=config["positions"], ch=config["channels"], hyb = smFISH_hybs)
+        #expand("results/seg_stacks/pos{pos}_polyT_dapi.tiff", pos=config["positions"])
+
+#include: "rules/segmentation.smk"
+include: "rules/set_up.smk"
+include: "rules/fit_beads.smk"
+include: "rules/subtract_background.smk"
+include: "rules/fit_readout_dots.smk"
+include: "rules/decode.smk"
+#include: "rules/make_plots.smk"
+include: "rules/find_fiducial_marker_alignments.smk"

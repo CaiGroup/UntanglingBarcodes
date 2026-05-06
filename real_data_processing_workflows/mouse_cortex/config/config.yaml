@@ -1,0 +1,133 @@
+# number of negative control codewords to use: either "all" or positive integer
+# using positive integer greater than the number of unused codewords is equivilant
+# to using "all"
+n_neg_cntrl_cws: "all"
+
+
+# Array of positions in the experiment
+
+positions: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76] 
+positions: [72,73,74,75,76] #[9,10,11,12,27,32]
+
+#positions: [61,62,63,64,65,66,67,68,69,70,71] #all finished
+  #positions: [51,52,53,54,55,56,57,58,59,60] #,61,62,63,64,65,66,67,68,69,70,71] #all finished
+
+#positions: [51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71] 
+#all finished!
+#positions: [36,37,38,39,40,41,42,43,44,45,46,47,48,49,50] #,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71] 
+#positions: [31,32,33,34,35] #,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71] 
+  ##positions: [21,22,23,24,25,26,27,28,29,30] #,21,22,23,24,25,26,27,28,29,30] #,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71] 
+#positions: [11,12,13,14,15,16,17,18,19,20] #,21,22,23,24,25,26,27,28,29,30] #,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71] 
+
+
+# fiducial markers not fond for pos 9 and 10  
+#positions: [0,1,2,3,4,5,6,7,8,9,10] #,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30] #,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71] 
+#[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25] 
+  #[0] #,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25] #, 1, 2]
+  #rep1: [0,1,2,3,4,5,6]
+  #rep2:  [0,1,2,3,4,5,6,7,8,9] #[0, 7] #
+  #[4,5,6,27,28,29,30]
+
+
+# parameters for fitting beads with ADCG
+fit_beads:
+  sigma_lb: 1.0
+  sigma_ub: 2.0
+  final_loss_improvement: 10000.0
+  min_weight: 10000.0
+
+# parameters for fitting beads with ADCG
+fit_fiducials:
+  sigma_lb: 1.0
+  sigma_ub: 5.0
+  sigma_z_lb: 0.5
+  sigma_z_ub: 20.0
+  final_loss_improvement: 1000.0
+  min_weight: 5000.0
+  max_iters: 5
+
+
+# search radius (in pixels) to match fiducial markers in
+# initial and final fiducial marker only images
+r_xy: 4
+r_z: 1
+
+rxy_ro: 3
+rz_ro: 3
+
+min_fm_hyb_matches: 'default'
+
+outlier_sd_thresh: 3
+
+max_lat_offset: 10
+
+set_xy_search_error: 0.5
+
+# radius of rolling ball background subtraction element (in pixels)
+rb_radius: 3.3
+
+#radius of median filter (in pixels) applied before rolling ball background subtraction
+r_med_filt: 5
+
+bead_thresh: 600
+
+bg_sub_multiplier: 1.0
+
+bead_dilation_radius: 5
+
+#max_iters: 50
+max_iters: 300
+
+
+#max_iters_561: 20
+max_cd_iters: 10 #200
+
+sigma_xy_ub: 2.0
+
+sigma_xy_lb: 1.1
+
+
+sigma_z_ub: 2.0
+
+sigma_z_lb: 1.5
+
+
+min_weight: 100.0
+
+#min_weights: [150.0,170.0,190.0,210.0,230.0,250.0,270.0,290.0,310.0,330.0,350.0]
+#min_weights: [900.0] #[80.0] #, 420.0]
+
+
+final_loss_improvement: 1000.0
+
+
+min_allowed_separation: 2.0
+
+tile_main_width: 50
+tile_overlap: 4
+
+tile_depth: 5
+tile_depth_overhang: 3
+
+pixels_to_expand: 50
+small_label_thresh: 10000
+
+# cost parameters for syndrome decoding to try
+sfs: [0.0] #, 2.0, 4.0]
+wfs: [0.0] #[0.0, 2.0] #, 4.0] #[0.0, 4.0, 8.0, 12.0] #, 16.0]
+lfs: [5.0] #[2.0,3.0,4.0,5.0,6.0,7.0] #[2.0,2.5,3.0,3.5,4.0,4.5,5.0,5.5,6.0,6.5,7.0] #[3.0, 5.0, 7.0, 9.0, 11.0, 13.0 ] #, 15.0, 20.0, 30.0, 40.0] #, 60.0, 80.0]
+zfs: [1.0] #, 2.0, 3.0] #, 1.0, 2.0] #, 20.0, 30.0, 40.0] #, 80.0, 120.0]
+drops: [0] #,1]
+
+zslices: [0,1,2,3,4,5,6,7] #,8] #,9,10]
+
+skip_thresh: 700
+skip_density_thresh: 700
+
+min_filter_size: 5
+filter_prop_neg_control: 0.3
+
+overlay_roi_width: 200
+
+radial_density_func_rmax: 2
+radial_density_func_delta_r: 0.02

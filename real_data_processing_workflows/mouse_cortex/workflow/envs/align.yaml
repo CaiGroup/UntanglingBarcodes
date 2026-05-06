@@ -1,0 +1,10 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - pandas
+  - numpy
+  - scipy
+  - opencv
+pip:
+  - git+https://github.com/CaiGroup/seqfish_fm_match.git#egg=seqfish_fm_match

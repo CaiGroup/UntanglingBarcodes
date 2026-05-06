@@ -1,0 +1,11 @@
+.snakemake/*
+.vscode/*
+.DS_Store
+gurobi.log
+results/*
+resources/*
+*.ipynb
+*.pyc
+benchmarks/*
+benchmarks*
+results*
