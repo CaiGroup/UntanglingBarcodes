@@ -1,0 +1,97 @@
+configfile: "config/config.yaml"
+
+rule target:
+    input: 
+        "results/sum_stats_all.csv"
+        #expand("results/interactive_overlays/overlay_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.png", rep=config["reps"],nbarcodes=config["nbarcodes"],nnonspec=config["nnonspec"],lf=config["lf"][1:])
+
+
+# generate simulated data; images and ground truth
+rule generate_simulated_data:
+    input: "resources/Eng2019_647.csv"
+    params: fov_width=config["fov_width"], sigma=config["sigma"], rstdv=config["rstdv"]
+    output: 
+        "results/truth/ground_truth_rep{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv",
+        "results/dots/dots_rep{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv", 
+        expand("results/images/hyb_im_{hyb}_rep_{{rep}}_nbarcodes{{nbarcodes}}_nnonspec{{nnonspec}}.png", hyb = list(range(1,81)))
+    script: "scripts/gen_sim_data.jl"
+
+# fit simulated images
+rule fit_ims:
+    input: "results/images/hyb_im_{hyb}_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.png"
+    params: fov_width=config["fov_width"], sigma=config["sigma"], min_weight=config["min_weight"]
+    output: "results/fits/hyb_fit_{hyb}_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv"
+    script: "scripts/fitdots.jl"
+
+rule aggregate_rep_fits:
+    input: expand("results/fits/hyb_fit_{hyb}_rep_{{rep}}_nbarcodes{{nbarcodes}}_nnonspec{{nnonspec}}.csv", hyb = list(range(1,81)))
+    output: "results/fits/aggregated_fits_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv"
+    script: "scripts/aggregate_dots.py"
+
+rule find_barcode_candidates_from_ims:
+    input: "results/fits/aggregated_fits_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv", "resources/codebook_ch_643.csv", "resources/H.txt"
+    params: lf = min(config["lf"])
+    output: "results/candidate_barcodes_ims/candidate_barcodes_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv"
+    script: "scripts/find_save_barcode_candidates.jl"
+
+rule choose_barcodes_from_ims:
+    input: "results/candidate_barcodes_ims/candidate_barcodes_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv", "results/fits/aggregated_fits_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv", "resources/codebook_ch_643.csv", "resources/H.txt"
+    params: skip_thresh="auto", skip_density_thresh=500
+    output: 
+        "results/decoded_ims/decoded_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv",
+        "results/sum_stats_ims/sum_stats_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv",
+        "results/decoded_pnts_ims/decoded_pnts_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv"
+    script: "scripts/choose_barcodes_from_saved_candidates.jl"
+
+rule find_barcode_candidates_no_ims:
+    input: "results/dots/dots_rep{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv", "resources/codebook_ch_643.csv", "resources/H.txt"
+    params: lf = min(config["lf"])
+    output: "results/candidate_barcodes_no_ims/candidate_barcodes_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv"
+    script: "scripts/find_save_barcode_candidates.jl"
+
+rule choose_barcodes_no_ims:
+    input: "results/candidate_barcodes_no_ims/candidate_barcodes_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv", "results/dots/dots_rep{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv", "resources/codebook_ch_643.csv", "resources/H.txt"
+    params: skip_thresh="auto", skip_density_thresh=100
+    output: 
+        "results/decoded_no_ims/decoded_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv",
+        "results/sum_stats_no_ims/sum_stats_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv",
+        "results/decoded_pnts_no_ims/decoded_pnts_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv"
+    script: "scripts/choose_barcodes_from_saved_candidates.jl"
+
+
+rule add_truth_score_col:
+    input:
+        "results/sum_stats{ims}/sum_stats_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv",
+        "results/decoded{ims}/decoded_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv",
+        "results/truth/ground_truth_rep{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv",
+        "resources/codebook_ch_643.csv"
+    output:
+        "results/sumstats_wtruth{ims}/sswt_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv"
+    script: "scripts/add_truth_score.py"
+
+rule aggregate_sumstats_ims:
+    input: expand("results/sumstats_wtruth_ims/sswt_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv", rep=config["reps"],nbarcodes=config["nbarcodes"],nnonspec=config["nnonspec"], lf =config["lf"])
+    output: "results/sum_stats_wtruth_ims.csv"
+    script: "scripts/aggregate_sum_stats.py"
+
+rule aggregate_sumstats_no_ims:
+    input: expand("results/sumstats_wtruth_no_ims/sswt_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv", rep=config["reps"],nbarcodes=config["nbarcodes"]+config["nbarcodes_no_ims_only"],nnonspec=config["nnonspec"]+config["nnonspec_no_ims_only"], lf=config["lf"])
+    output: "results/sum_stats_wtruth_no_ims.csv"
+    script: "scripts/aggregate_sum_stats.py"
+
+rule combine_sumbstats:
+    input: expand("results/sum_stats_wtruth{ims}.csv", ims=["_ims", "_no_ims"])
+    output: "results/sum_stats_all.csv"
+    script: "scripts/aggregate_sum_stats.py"
+
+rule make_interactive_overlays:
+    input: 
+        "results/dots/dots_rep{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}.csv",
+        "results/decoded_pnts/decoded_pnts_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.csv",
+        expand("results/images/hyb_im_{hyb}_rep_{{rep}}_nbarcodes{{nbarcodes}}_nnonspec{{nnonspec}}.png", hyb = list(range(1,81)))
+    params: fov_width=config["fov_width"]
+    output:
+        "results/interactive_overlays/overlay_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_lf{lf}.png"
+    script:
+        "scripts/make_interactive_overlay.py"
+
