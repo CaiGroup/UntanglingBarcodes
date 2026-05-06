@@ -1,0 +1,148 @@
+configfile: "config/config.yaml"
+import pandas as pd
+import numpy as np
+print("get codes to simulate")
+codes_to_simulate = pd.read_csv(config["code_file"])
+print(codes_to_simulate)
+print(codes_to_simulate["code"])
+#codes_to_simulate.set_index(['q', 'n', 'k', 'w', 'ncws', 'v'], inplace=True)
+print("got codes")
+ds = [25] #, 50] #, 75] 
+print("|".join(codes_to_simulate["code"]))
+
+
+rule target:
+    #input: "results/decoded/decoded_npcl_20_ncws_7000_rep_48_nbarcodes1_lf3.0.csv"
+    input:
+        expand("results/plots/nc_lambda_tp_fp_{code}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.png",nbarcodes=ds,nnonspec=config["nnonspec"], lf=config["lf"], drc=config["drop_correction"], pdrop=config["pdrop"], code=codes_to_simulate["code"])
+        #expand("results/plots/nc_lambda_tp_fp_{code}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.png",nbarcodes=ds,nnonspec=config["nnonspec"], lf=config["lf"], drc=config["drop_correction"], pdrop=config["pdrop"], code=codes_to_simulate["code"])
+        #expand("results/decoded_hstackfit/nc_decoded_q11_n10_k7_w4_ncws542_v1_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.csv",nbarcodes=ds,nnonspec=config["nnonspec"], lf=config["lf"], drc=config["drop_correction"], pdrop=config["pdrop"]),
+        #expand("results/truth/ground_truth_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv",nbarcodes=ds,nnonspec=config["nnonspec"], pdrop=config["pdrop"])
+
+rule install_julia_environment:
+    input: "workflow/envs/julia_environment"
+    output: "results/julia_environment_installed.txt"
+    resources: mem_mb=1000
+    script: "scripts/install_julia_environment.jl"
+
+rule generate_simulated_truth:
+    input: 
+        "resources/codebooks/{code}_cb.csv",
+        "workflow/envs/julia_environment/",
+        "results/julia_environment_installed.txt"
+    params: roi_width=config["roi_width"], roi_pad=config["roi_pad"],sigma=config["sigma"], rstdv=config["rstdv"], pbind_primary=config["pbind_primary"]
+    group: "decode"
+    output: "results/truth/ground_truth_{code}_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv"
+    wildcard_constraints: rep = "\d+", code = "|".join(codes_to_simulate["code"])
+    script: "scripts/gen_truth.jl"
+
+rule aggregrate_replicates_ground_truth:
+    input: expand("results/truth/ground_truth_{{code}}_rep_{rep}_nbarcodes{{nbarcodes}}_nnonspec{{nnonspec}}_pdrop{{pdrop}}.csv", rep=config["reps"])
+    output: "results/truth/ground_truth_{code}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv"
+    wildcard_constraints: rep = "\d+", code = "|".join(codes_to_simulate["code"])
+    conda: "envs/python.yaml"
+    script: "scripts/aggregate_replicates_gt.py"
+
+for code in codes_to_simulate["code"]:
+    print("code: ", code)
+    path = "resources/codebooks/{code}_cb.csv".format(code=code)
+    code_cb = pd.read_csv(path)
+    code_q = len(np.unique(code_cb.iloc[:,1:]))
+    code_n = np.shape(code_cb)[1] - 1
+    #rule generate_simulated_data:
+    rule:
+        input: 
+            "resources/codebooks/{code}_cb.csv".format(code=code),
+            "results/truth/ground_truth_"+code+"_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv",
+            "workflow/envs/julia_environment/",
+            "results/julia_environment_installed.txt"
+        params:  fov_width = config["roi_width"]+2*config["roi_pad"], sigma=config["sigma"], rstdv=config["rstdv"], dot_intensity=config["dot_intensity"], pbind_primary=config["pbind_primary"], pbind_secondary=config["pbind_readout"]
+        group: "decode"
+        wildcard_constraints: rep = "\d+", code = "|".join(codes_to_simulate["code"])
+        output: 
+            "results/truth/ground_truth_"+code+"_rep{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv",
+            "results/dots/dots_"+code+"_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv",
+            expand("results/images/hyb_im_r_{r}_pc_{pc}_"+code+"_rep_{{rep}}_nbarcodes{{nbarcodes}}_nnonspec{{nnonspec}}_pdrop{{pdrop}}.png", r = list(range(1,code_n+1)), pc=list(range(1,code_q))) #zeros not probed
+        script: "scripts/gen_sim_data.jl"
+
+    #rule find_cand_dots:
+    rule:
+        input:
+            "resources/codebooks/"+code+"_cb.csv",
+            "workflow/envs/julia_environment/",
+            "results/julia_environment_installed.txt",
+            expand("results/images/hyb_im_r_{r}_pc_{pc}_"+code+"_rep_{{rep}}_nbarcodes{{nbarcodes}}_nnonspec{{nnonspec}}_pdrop{{pdrop}}.png", r = list(range(1,code_n+1)), pc=list(range(1,code_q)))
+    
+        output: "results/cand_dots/cdots_"+code+"_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv"
+        params: fov_width = config["roi_width"]+2*config["roi_pad"], grid_size= config["grid_size"], min_intensity=config["min_weight"]
+        wildcard_constraints: rep = "\d+", code = "|".join(codes_to_simulate["code"])
+        script: "scripts/get_candidate_coords.jl" 
+
+    rule:
+        input: 
+            "results/cand_cpaths/nc_cand_cpaths_"+code+"_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv",
+            "results/cand_dots/cdots_"+code+"_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv",
+            "resources/codebooks/"+code+"_cb.csv",
+            expand("results/images/hyb_im_r_{r}_pc_{pc}_"+code+"_rep_{{rep}}_nbarcodes{{nbarcodes}}_nnonspec{{nnonspec}}_pdrop{{pdrop}}.png", r = list(range(1,code_n+1)), pc=list(range(1,code_q)), code=code)
+        output:
+            "results/decoded_hstackfit/nc_decoded_"+code+"_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.csv",
+            "results/decoded_hstackfit/nc_lambda_stats_"+code+"_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.csv",
+        wildcard_constraints: rep = "\d+", code = "|".join(codes_to_simulate["code"])
+        script: "scripts/l0learn_barcode_hyperstack_fit_sparseX.R"
+
+rule find_cand_cpaths:
+    input: 
+        "resources/codebooks/{code}_cb.csv",
+        "resources/codebooks/{code}_H.csv",
+        "results/cand_dots/cdots_{code}_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv",
+        "workflow/envs/julia_environment/",
+        "results/julia_environment_installed.txt"
+    output: "results/cand_cpaths/cand_cpaths_{code}_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv"
+    params: sr = config["search_radius"]
+    wildcard_constraints: rep = "\d+", code = "|".join(codes_to_simulate["code"])
+    script: "scripts/get_cand_cpaths.jl"
+
+rule find_cand_cpaths_with_negctrls:
+    input: 
+        "resources/codebooks/{code}_cb.csv",
+        "resources/codebooks/{code}_H.csv",
+        "results/cand_dots/cdots_{code}_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv",
+        "workflow/envs/julia_environment/",
+        "results/julia_environment_installed.txt"
+    output: "results/cand_cpaths/nc_cand_cpaths_{code}_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv"
+    params: sr = config["search_radius"]
+    wildcard_constraints: rep = "\d+", code = "|".join(codes_to_simulate["code"])
+    script: "scripts/get_cand_cpaths.jl"
+
+rule get_hstack_sumstats:
+    input: 
+        "results/decoded_hstackfit/decoded_rep_{rep}_{code}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.csv",
+        "resources/codebooks/{code}_cb.csv",
+        "workflow/envs/julia_environment/",
+        "results/julia_environment_installed.txt"
+    output: 
+        "results/sum_stats_hstackfit/sum_stats_{code}_rep_{rep}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.csv",
+        "results/sum_stats_hstackfit/sum_plot_rep_{rep}_{code}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.csv"
+    wildcard_constraints: rep = "\d+",  code = "|".join(codes_to_simulate["code"])
+    conda: "envs/python.yaml"
+    script: "scripts/get_hstack_sumstats.jl"
+
+
+rule aggregrate_replicates:
+    input: expand("results/decoded_hstackfit/nc_decoded_{{code}}_rep_{rep}_nbarcodes{{nbarcodes}}_nnonspec{{nnonspec}}_pdrop{{pdrop}}_lf{{lf}}_drc{{drc}}.csv", rep=config["reps"])
+    output: "results/decoded_hstackfit/nc_decoded_{code}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.csv"
+    wildcard_constraints:  code = "|".join(codes_to_simulate["code"])
+    conda: "envs/python.yaml"
+    script: "scripts/aggregate_replicates.py"
+
+rule plt_tp_fp_lambda:
+    input: 
+        "resources/codebooks/{code}_cb.csv",
+        "results/truth/ground_truth_{code}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}.csv",
+        "results/decoded_hstackfit/nc_decoded_{code}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.csv",
+    output:
+        "results/plots/nc_lambda_tp_fp_{code}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.png",
+        "results/plots/nc_lambda_tp_fp_{code}_nbarcodes{nbarcodes}_nnonspec{nnonspec}_pdrop{pdrop}_lf{lf}_drc{drc}.pdf"
+    params: dup_sr=config["dup_sr"]
+    conda: "envs/python.yaml"
+    script: "scripts/plot_tp_fp_lambda.py"
