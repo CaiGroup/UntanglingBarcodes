@@ -1,0 +1,10 @@
+[deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+GLMNet = "8d5ece8b-de18-5317-b113-243142960cc6"
+GLPK = "60bf3e95-4087-53dc-ae20-288a0d20c6a6"
+Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
+Parquet = "626c502c-15b0-58ad-a749-f091afb673ae"
+SeqFISHSyndromeDecoding = "51ea57f1-910f-46fc-b3bd-0d8c863eb521"
+SeqFISH_ADCG = "43951575-4589-48f4-b0ab-ec671c641013"

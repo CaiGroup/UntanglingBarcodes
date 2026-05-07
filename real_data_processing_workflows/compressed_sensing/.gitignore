@@ -1,0 +1,13 @@
+resources/replicates/rep*/ch_pngs/*
+resources/replicates/rep*/Labeled_Images/*
+results*
+.snakemake*
+docs*
+gurobi.log
+*.pyc
+slurm-*.out
+benchmarks/*
+resources/dots_first*
+*sum_stats/*
+logs*
+*.py.ipynb
