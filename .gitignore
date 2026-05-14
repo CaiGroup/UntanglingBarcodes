@@ -1,2 +1,5 @@
 *.ipynb_checkpoints*
 *.pyc
+.vscode/*
+real_data_processing_workflows/*/resources/*
+figure_generating_notebooks/SFig4B_cortex_label_tranfer_heatmap/data/*
