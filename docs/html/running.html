@@ -1,0 +1,174 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Running &mdash; Untangling Overlapping Barcodes in Image-Based Spatial Genomics Cell Culture Data 0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=837179f8"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Output Files" href="output.html" />
+    <link rel="prev" title="Setting Parameters" href="setting_parameters.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Untangling Overlapping Barcodes in Image-Based Spatial Genomics Cell Culture Data
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installing_packages.html">Installing packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input_files.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setting_parameters.html">Setting Parameters</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Running</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#local">Local</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#slurm-cluster-as-in-the-caltech-hpc">Slurm Cluster (as in the Caltech HPC)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#useful-commands">Useful Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#useful-slurm-commands">Useful Slurm Commands</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="output.html">Output Files</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Untangling Overlapping Barcodes in Image-Based Spatial Genomics Cell Culture Data</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Running</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/running.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="running">
+<h1>Running<a class="headerlink" href="#running" title="Link to this heading"></a></h1>
+<p>In this page, I give instructions on how to run the workflow locally or on a slurm cluster. The default configuration is to run all fields of view. If you want
+to test the workflow on a small portion of the data, edit the positions lists in the config file.</p>
+<p>For the Reed-Solomon encoded processing workflow, edit the python list in line 23</p>
+<p><code class="docutils literal notranslate"><span class="pre">positions:</span> <span class="pre">[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]</span> </code></p>
+<p>to include only the positions that you would like to test on.</p>
+<p>For the seqFISH+ 2019 experiment workflow, edit the replicate position lists in lines 26 and 27</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">positions</span><span class="p">:</span>
+  <span class="n">rep1</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span>
+  <span class="n">rep2</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>or the channel list in line 19</p>
+<p><code class="docutils literal notranslate"><span class="pre">channels:</span> <span class="pre">[488,</span> <span class="pre">561,</span> <span class="pre">643]</span></code></p>
+<p>The workflow requires that at least one position be processed in each replicate, or it will error. The channels are decoded independently, so not all need to be decoded.</p>
+<section id="local">
+<h2>Local<a class="headerlink" href="#local" title="Link to this heading"></a></h2>
+<p>To run locally open your conda environment with snakemake installed in it (from above), navigate to the repository home directory, then use the command:</p>
+<pre> <code> snakemake --use-conda --cores n </code> </pre>
+<p>where n is the number of cores you would like to provide.</p>
+</section>
+<section id="slurm-cluster-as-in-the-caltech-hpc">
+<h2>Slurm Cluster (as in the Caltech HPC)<a class="headerlink" href="#slurm-cluster-as-in-the-caltech-hpc" title="Link to this heading"></a></h2>
+<p>To run on the HPC open your conda environment with snakemake installed in it (from above), then run the command:</p>
+<pre> <code> sbatch run_slurm.sh </code> </pre>
+<p>from the repository home directory.</p>
+<p>If you have a large dataset, the master job may time out. To increase the allowed time, change edit line 5 of run-slurm.sh:</p>
+<pre> <code> #SBATCH --time=150:00:00   # walltime </code> </pre>
+<p>I have set the walltime to 150 hours, which I find is enough for my datasets, but the Caltech HPC allows walltimes of up to 14 days.</p>
+<p>You may also want to change the maximum number of jobs that may be submitted at a time. To change this, edit line 16 of run-slurm.sh:</p>
+<pre> <code> snakemake --use-conda --cores=1 --cluster 'sbatch -t 3000 -c 1' -j 150 --scheduler greedy --rerun-incomplete --keep-going --rerun-tiggers mtime</code> </pre>
+<p>The last option, <code> -j </code>, specifies the maximum number of jobs that may be submitted at a time. I have it set to 150.</p>
+<p>I have found that error occasionally occur with submitting many parallel jobs or with requesting Gurobi licenses from multiple parallel jobs. These errors may prevent
+the workflow from finishing in one run. If they do occur, just restart the workflow after each error and all jobs should eventually complete successfully.</p>
+</section>
+<section id="useful-commands">
+<h2>Useful Commands<a class="headerlink" href="#useful-commands" title="Link to this heading"></a></h2>
+<p>To check how many jobs are left to execute, run</p>
+<pre> <code> snakemake -n </code> </pre>
+<p>Some useful options for running worfkows with the ‘snakemake’ command</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-scheduler</span> <span class="pre">greedy</span></code> prevents snakemake from spending too much time optimizing the order in which to submit jobs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--keep-going</span></code> instructs it to evaluate all jobs whose input files can be generated even if there are errors in other jobs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--rerun-tiggers</span> <span class="pre">mtime</span></code> is useful to avoid needlessly rerunning jobs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--use-conda</span></code> instructs snakemake to install conda environments for each job (does not work on windows)</p></li>
+</ul>
+<section id="useful-slurm-commands">
+<h3>Useful Slurm Commands<a class="headerlink" href="#useful-slurm-commands" title="Link to this heading"></a></h3>
+<p>To see what slurm jobs you have running on the HPC use the command</p>
+<pre> <code> squeue -u your_username </code> </pre>
+<p>To check for errors, search the output files with</p>
+<pre> <code> grep -i error ./* </code> </pre>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="setting_parameters.html" class="btn btn-neutral float-left" title="Setting Parameters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="output.html" class="btn btn-neutral float-right" title="Output Files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Jonathan A. White.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

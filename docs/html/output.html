@@ -1,0 +1,135 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Output Files &mdash; Untangling Overlapping Barcodes in Image-Based Spatial Genomics Cell Culture Data 0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=837179f8"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Running" href="running.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Untangling Overlapping Barcodes in Image-Based Spatial Genomics Cell Culture Data
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installing_packages.html">Installing packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input_files.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setting_parameters.html">Setting Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running.html">Running</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Output Files</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Untangling Overlapping Barcodes in Image-Based Spatial Genomics Cell Culture Data</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Output Files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/output.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="output-files">
+<h1>Output Files<a class="headerlink" href="#output-files" title="Link to this heading"></a></h1>
+<p>When a run finishes, the workflow will save two .csv files in the results directory: <i>decoded_summary_stats.csv </i> and <i> decoded_barcode.csv </i>.</p>
+<p><i>decoded_summary_stats.csv </i> gives a summary of how well each position-channel image decoded with each set of syndrome decoding parameters.</p>
+<p>There tends to be a trade off between how many on target barcodes are found and the estimated false positive rate in setting the syndrome decoding parameters. It is up to you to decide how many false positives you are willing to tolerate to get more true positive barcodes.</p>
+<p>To you help decide which syndrome decoding parameters to use, there are plots of the the on-target/off-target counts for each syndrome decoding parameter set used for each position-channel image in the results/plots/on_off_plots folder.</p>
+<p>Also to help gauge the performance the workflow, there will be interactive plots showing overlays of dots found in ADCG and how they were or were not decoded in the results/interactive_plots folder. Mouse over on-target dots to see what gene they were decoded as and what their codeword is in hovertext.</p>
+<p><i> results/mpaths_ch_<em><em>pos</em></em>_lf*_wf*_sf*_df*.csv </i> files list each decoded barcode in the experiment with many columns:</p>
+<ul class="simple">
+<li><p><b>gene</b> gives the name of the gene for which the barcode represents (negative control means that barcode is for codeword that was unassigned to a gene)</p></li>
+<li><p><b>gene_number</b> is the row which the genes (or negative control’s) codeword was listed in the codebook</p></li>
+<li><p><b>cpath</b> is a list of the indices of the dots for the cell that they are listed in the aligned_dots_ch_<em><em>pos</em></em>.csv</p></li>
+<li><p><b>cost</b> is the cost that the barcode was assigned by the cost funtion during decoding</p></li>
+<li><p><b>cellid</b> is the id of the cell in that particuar position that the barcode was found</p></li>
+<li><p><b>x</b> is the average x coordinate of the aligned dots in the barcode</p></li>
+<li><p><b>y</b> is the average y coordinate of the aligned dots in the barcode</p></li>
+<li><p><b>cc</b> is the connected component (of candidate barcodes) in which the barcode was chosen during decoding</p></li>
+<li><p><b>cc_size</b> is the number of candidate barcodes that were in the connected component of candidate barcodes in which the barcode was chosen during decoding</p></li>
+<li><p><b>pos</b> is the position number in which the barcode was found</p></li>
+<li><p><b>ch</b> is channel in which the barcode was found</p></li>
+<li><p><b>lvf</b> is the lateral variance penalty factor used in the syndrome decoding cost function</p></li>
+<li><p><b>wf</b> is log weight variance penalty factor used in the syndrome decoding cost function</p></li>
+<li><p><b>svf</b> is the sigma variance penalty factor used in the syndrome decoding cost function</p></li>
+<li><p><b>dr</b> is the number of drops allowed in a decoded barcode</p></li>
+</ul>
+<p>You may also wish to remove on-target barcodes that were found in connected components from which many negative control barcodes were also found.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="running.html" class="btn btn-neutral float-left" title="Running" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Jonathan A. White.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
