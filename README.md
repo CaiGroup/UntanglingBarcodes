@@ -10,3 +10,5 @@ Also checkout our git repositores for the packages implementing algorithms descr
 Experimental data processing workflows included in this repository are written to take raw data as inputs. As raw experimental image data is too large for posting it to be practical, we make available alternative versions of our data processing workflows with preprocessed data of managable size: 
 * [Cross-channel Reed-Solomon encoded experiment](https://github.com/CaiGroup/UntanglingRSBarcodes/tree/master)
 * 2019 SeqFISH+ (Coming soon)
+
+Check out the [documentation](https://caigroup.github.io/UntanglingBarcodes/index.html) for the 3T3 cells spots-first workflows.
