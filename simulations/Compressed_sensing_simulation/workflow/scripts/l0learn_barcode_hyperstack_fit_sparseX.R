@@ -1,3 +1,9 @@
+if (!requireNamespace("L0Learn", quietly = TRUE)) {
+  # No conda package provides L0Learn for win-64 (only dnachun's linux-64 build exists),
+  # so install the CRAN release, which ships precompiled Windows binaries, straight into
+  # this conda env's R library on first use.
+  install.packages("L0Learn", repos = "https://cloud.r-project.org")
+}
 library(L0Learn)
 library(tiff)
 library(png)
@@ -30,6 +36,10 @@ if (nrow(cpaths) == 0){
   )
   write.csv(ranked_cpaths, snakemake@output[[1]])
   write.csv(lambda_stats, snakemake@output[[2]])
+  write.csv(ranked_cpaths, snakemake@output[[3]])
+  write.csv(data.frame(lambda=numeric(0), step=integer(0), gene=integer(0),
+                       gene_number=integer(0), x=numeric(0), y=numeric(0), z=numeric(0)),
+            snakemake@output[[4]])
 } else{
 
 psf = function(x, y, z){
@@ -54,7 +64,7 @@ for (img_i in 4:length(snakemake@input)){
   }
 }
 
-n_nz_pixels_ub = 4*nrow(cpaths)*sum(psf(-10:10, 0,0) >= 0.001)^3
+n_nz_pixels_ub = 4*nrow(cpaths)*sum(psf(-10:10, 0,0) >= 0.001)^2
 
 is = array(0, dim = n_nz_pixels_ub)
 js = array(0, dim = n_nz_pixels_ub)
@@ -77,7 +87,7 @@ for (j in 1:nrow(cpaths)){
     } else{
       s = (q-1)*(block-1) + pseudocolor
     }
-        
+
     i = 1
     for (yarr in 1:fov_width){
       for (xarr in 1:fov_width){
@@ -90,7 +100,7 @@ for (j in 1:nrow(cpaths)){
         }
         i = i + 1
       }
-    } 
+    }
   }
 }
 
@@ -128,12 +138,13 @@ ndecodings = dim(coef(reged))[2]
 
 
 for (i in 2:ndecodings){
-
-  nonzeros = cpath_list[coef(reged)[,i] != 0] - 1
+  
+  nonzeros = which(coef(reged)[-1,i] != 0)
   if (any(coef(reged)[,i] < 0)){
-    print("break")
-    print(i) #, "overfit!")
-    break
+    # A negative coefficient (in practice the unconstrained intercept) marks an over-fit
+    # solution at this lambda. Discard it but keep ranking subsequent steps, rather than
+    # aborting: breaking here drops every true barcode that first enters on this step.
+    next
   }
   for (nz in nonzeros) {
     if (!is.na(nz)){
@@ -175,4 +186,29 @@ lambda_stats$cvMeans = reged$cvMeans[[1]]
 lambda_stats$cvSDs = reged$cvSDs[[1]]
 write.csv(lambda_stats, snakemake@output[[2]])
 }
+#write.csv(ranked_cpaths[ranked_cpaths$lambda >= 0.01,], snakemake@output[[3]])
 
+# --- actual per-lambda support over the whole L0 path ---
+# The stringency ranking above assigns each codepath its FIRST-ENTRY lambda, which assumes the L0
+# support grows monotonically as lambda decreases. It does not: a codepath can leave and re-enter
+# the support. To let the scorer report the best zero-FDR sensitivity found at ANY lambda, emit the
+# genes actually selected (non-zero coefficient) at each lambda step.
+# cm = as.matrix(coef(reged))            # (1 intercept + kept codepaths) x lambda steps
+# reged_tab = as.data.frame(print(reged))
+# nsteps = min(ncol(cm), nrow(reged_tab))
+# perlam_parts = list()
+# for (L in 1:nsteps){
+#   supp = which(cm[-1, L] != 0)         # codepaths in the actual support at this lambda
+#   if (length(supp) == 0) next
+#   perlam_parts[[length(perlam_parts) + 1]] = data.frame(
+#     lambda = reged_tab[L, "lambda"], step = L,
+#     gene = cpaths2$gene[supp], gene_number = cpaths2$gene_number[supp],
+#     x = cpaths2$x[supp], y = cpaths2$y[supp], z = cpaths2$z[supp]
+#   )
+# }
+# perlambda = if (length(perlam_parts) > 0) do.call(rbind, perlam_parts) else
+#   data.frame(lambda=numeric(0), step=integer(0), gene=integer(0),
+#              gene_number=integer(0), x=numeric(0), y=numeric(0), z=numeric(0))
+# write.csv(perlambda, snakemake@output[[4]])
+
+# }

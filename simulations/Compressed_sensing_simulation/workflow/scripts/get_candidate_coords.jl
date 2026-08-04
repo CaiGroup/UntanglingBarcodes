@@ -71,11 +71,11 @@ function get_cand_dots(hyperstack, psfs, psf_depths, psf_heights, psf_widths, mi
 
         #covolve image and psf
         im_candidate_dot_coords = get_cand_dot_coords(hyperstack[i, :,:,:], psfs[i], min_intensities[i], conv_threshold[i], psf_heights[i], psf_widths[i], psf_depths[i])
-        
+
         #add pseudocolor and round columns
         im_candidate_dot_coords[!, "block"] .= rounds[i]
         im_candidate_dot_coords[!, "pseudocolor"] .= pseudocolors[i]
-        
+
         push!(im_cand_dot_dfs, im_candidate_dot_coords)
 
     end
@@ -153,8 +153,28 @@ function lasso_cand_dots(img, psf, cand_dots, psf_width, psf_height, psf_depth)
 
     constraints = zeros(2, nrow(cand_dots))
     constraints[2,:] .= 2^16
+
+    # Pure-lasso baseline (original behaviour): keep any candidate selected anywhere on the L1 path.
     lasso_mod = glmnet(A, observed, constraints = constraints)
-    lassoed_candidates = cand_dots[findall(c -> c > 0, reshape(sum(lasso_mod.betas, dims=2), nrow(cand_dots))),:]
+    keep_pure = findall(c -> c > 0, reshape(sum(lasso_mod.betas, dims=2), nrow(cand_dots)))
+
+    # Elastic-net grouping (alpha < 1) recovers the true locations of overlapping same-colour dots,
+    # which pure lasso merges into a single displaced candidate (dropping one molecule's dot). Walk
+    # the path only until the number selected reaches enet_mult * (pure-lasso count), so excess
+    # candidates are still discarded; tying the depth to each image's own baseline keeps it
+    # consistent across images. The union with keep_pure guarantees no regression vs pure lasso.
+    enet_alpha = 0.9
+    enet_mult = 0.5
+    enet_mod = glmnet(A, observed, alpha = enet_alpha, constraints = constraints)
+    target = ceil(Int, enet_mult * max(length(keep_pure), 1))
+    keep_enet = Int[]
+    for l in 1:length(enet_mod.lambda)
+        keep_enet = findall(c -> c > 0, enet_mod.betas[:, l])
+        length(keep_enet) >= target && break
+    end
+
+    keep = sort(union(keep_pure, keep_enet))
+    lassoed_candidates = cand_dots[keep, :]
     return lassoed_candidates
 end
 
