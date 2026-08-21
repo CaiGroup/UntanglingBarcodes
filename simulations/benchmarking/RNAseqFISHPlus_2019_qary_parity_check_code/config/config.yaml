@@ -1,0 +1,51 @@
+roi_width: 5
+roi_pad: 10
+sigma: 1.0
+rstdv: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0] #, 2.5, 3.0]
+dot_intensity: 10000
+pbind_primary: 1.0
+pbind_readout: 1.0
+nbarcodes: [5, 10, 15, 20] #, 25, 30]
+nnonspec: [0]
+pdrop: [0.0]
+nreps: 200
+
+# spots-first parameters
+lat_thresh: 20
+lf: [0.0,  0.2, 0.4, 0.6, 0.8]
+drop_correction: [0]
+prand_dot: 0.0
+
+# compressed sensing parameters
+min_weight: 3000.0
+grid_size: 1.0 #0.5
+cs_search_radius: 2.0 #0.4
+psf_cutoff: 0.01
+
+# BarDenSR parameters
+bardensr_l1_penalty: [0, 0.001, 0.01, 0.03, 0.1] #[0] #, 0.01, 0.1]
+bardensr_iterations: 100
+bardensr_peak_thresh: [0.005, 0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.12, 0.15, 0.2, 0.3]
+bardensr_poolsize: 3
+
+# ISTDECO parameters
+istdeco_niter: 100
+istdeco_acc: 1.0
+istdeco_suppress_radius: 1
+istdeco_b: 1.0e-8
+istdeco_threshold_percentile: [98, 98.5, 99, 99.5,]
+istdeco_threshold_Q: [0.7, 0.8, 0.9, 0.99]
+istdeco_device: "cpu"
+
+# Graph-ISS parameters
+graph_iss_spot_min_distance: 1
+graph_iss_spot_threshold_rel: 0.05
+graph_iss_spatial_radius: 20
+graph_iss_k1: [0.1, 0.2, 0.33, 0.5] # 3, 1.0]
+
+# scoring
+dup_sr: 0.3
+
+code_file: "config/codes_to_simulate.csv"
+
+search_radius: 0.4

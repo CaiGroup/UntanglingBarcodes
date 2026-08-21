@@ -1,0 +1,11 @@
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - python>=3.9
+  - numpy
+  - scipy
+  - pandas
+  - pillow
+  - pytorch
+  - scikit-image

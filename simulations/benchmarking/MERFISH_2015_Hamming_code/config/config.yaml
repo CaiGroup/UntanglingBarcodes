@@ -1,0 +1,66 @@
+roi_width: 5
+roi_pad: 10
+sigma: 1.0
+rstdv: [0.0, 0.25, 0.5 , 0.75, 1.0, 1.25, 1.5] # 2.0] #, 2.5, 3.0]
+dot_intensity: 10000
+pbind_primary: 1.0
+pbind_readout: 1.0
+nbarcodes: [5, 10] #, 15] #, 20] #, 25, 30]
+nnonspec: [0]
+pdrop: [0.0]
+nreps: 200 #15
+
+# spots-first parameters
+lat_thresh: 5
+lf: [0.2, 0.4, 0.6, 0.8, 1.0]
+drop_correction: [0]
+prand_dot: 0.0
+
+# compressed sensing parameters
+min_weight: 3000.0
+grid_size: 1.0 #0.5
+cs_search_radius: 2.0 #0.4
+psf_cutoff: 0.01
+
+# BarDenSR parameters
+# bardensr_peak_thresh operates on raw (unnormalized) density magnitude, which scales with
+# codeword Hamming weight for this codebook (w=4) rather than a normalized ~1 scale. A local
+# sweep (2026-08-06) against ground truth found the zero-FDR/max-sensitivity threshold lands
+# below 0.7 in 84% of tested conditions (median ~0.4, IQR 0.36-0.55), so the old [0.7, 2.0]
+# grid was clipping achievable sensitivity at its lower boundary. l1=0.1 was dropped: across
+# the full historical sweep it produced decoded spots in only 0.7% of jobs vs 14-15% for
+# l1 <= 0.03, i.e. it over-penalizes for this codebook's signal scale.
+bardensr_l1_penalty: [0, 0.001, 0.01, 0.03]
+bardensr_iterations: 100
+bardensr_peak_thresh: [0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 1.0, 1.2, 1.5]
+bardensr_poolsize: 3
+
+# ISTDECO parameters
+istdeco_niter: 100
+istdeco_acc: 1.0
+istdeco_suppress_radius: 1
+istdeco_b: 1.0e-8
+# istdeco_threshold_percentile sets tau (the X-intensity floor) via a percentile of nonzero Y.
+# A local ground-truth sweep (2026-08-06) found the zero-FDR/max-sensitivity operating point
+# picked percentile=0 (no effective intensity floor beyond positivity) in 111/112 conditions --
+# tau is barely doing discriminative work here because X is already sparse from non-max
+# suppression, so the old [98, 99.5] range was clipped far above where the optimum actually
+# lives (restricting to the old grid only found a zero-FDR solution in 61/112 conditions, at
+# mean sensitivity 0.54, vs 0.996 once the grid covers the low end). istdeco_threshold_Q is the
+# real discriminator: optimal Q spread over 0.1-2.6 (median 1.0), well past the old [0.7, 0.99]
+# ceiling.
+istdeco_threshold_percentile: [0, 10, 30, 50, 80, 98]
+istdeco_threshold_Q: [0.2, 0.4, 0.6, 0.8, 1.0, 1.3, 1.6, 2.0]
+istdeco_device: "cpu"
+
+# Graph-ISS parameters
+graph_iss_spot_min_distance: 1
+graph_iss_spot_threshold_rel: 0.05
+graph_iss_spatial_radius: 1.5
+
+# scoring
+dup_sr: 0.3
+
+code_file: "config/codes_to_simulate.csv"
+
+search_radius: 0.4

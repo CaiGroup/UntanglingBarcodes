@@ -1,0 +1,24 @@
+configfile: "config/config.yaml"
+import pandas as pd
+import numpy as np
+
+codes_to_simulate = pd.read_csv(config["code_file"])
+print("Codes to simulate:", list(codes_to_simulate["code"]))
+
+if config["nreps"] != 0:
+    config["reps"] = list(range(1, config["nreps"] + 1))
+
+#include: "rules/simulation.smk"
+#include: "rules/spotsfirst.smk"
+#include: "rules/compressed_sensing.smk"
+#include: "rules/bardensr.smk"
+#include: "rules/istdeco.smk"
+#include: "rules/graph_iss.smk"
+#include: "rules/scoring.smk"
+include: "rules/aggregation.smk"
+
+rule all:
+    input:
+        expand("results/plots/sens_fdr_vs_density_{code}.png",
+               code=codes_to_simulate["code"]),
+        "results/plots/computational_cost.png"

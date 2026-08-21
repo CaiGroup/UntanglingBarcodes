@@ -1,0 +1,11 @@
+channels:
+  - conda-forge
+  - bioconda
+  - dnachun
+dependencies:
+  - r-base>=4.1
+  - r-glmnet
+  - r-matrix
+  - r-png
+  - r-tiff
+  - dnachun::r-l0learn
